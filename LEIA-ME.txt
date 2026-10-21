@@ -27,7 +27,15 @@ ESTÚDIO DE VÍDEOS IA - COMO USAR
 
 5. CRIAR UM VÍDEO - aba Criar vídeo
    - Foto do produto, nome, nicho, contexto, duração e estilo.
-   - Modo "Cenas no Gemini Pro" (grátis, recomendado):
+   - Modo "Vídeo no Veo do Gemini Pro" (grátis, recomendado):
+       1. Clique em "Criar vídeo com 1 clique". O app escreve o roteiro, grava a narração
+          e divide o vídeo em 2 a 4 clipes de 8 segundos.
+       2. Em cada clipe, clique em "Copiar prompt do Veo".
+       3. No gemini.google.com, anexe a foto do produto, escolha Vídeo, cole o prompt e baixe.
+          (Também funciona no Flow: labs.google/flow, com a foto em "Ingredientes".)
+       4. Volte ao app e clique em "Enviar vídeo" naquele clipe.
+       5. Clique em "Montar vídeo". O app corta os clipes no ritmo do estilo, com voz e legendas.
+   - Modo "Imagens no Gemini Pro" (grátis, mesmo passo a passo, mas uma imagem por cena):
        1. Clique em "Criar vídeo com 1 clique". O app escreve o roteiro e grava a narração.
        2. Em cada cena, clique em "Copiar prompt (Gemini)".
        3. Abra gemini.google.com, anexe a foto do produto, cole o prompt e peça a imagem

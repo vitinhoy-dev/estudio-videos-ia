@@ -227,6 +227,19 @@ button:disabled { opacity: 0.45; cursor: progress; transform: none; }
 .cena button:active, .cena .cenabtn:active { transform: none; background: rgba(255, 255, 255, 0.08); }
 @media (hover: hover) and (pointer: fine) { .cena button:hover, .cena .cenabtn:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); } }
 
+/* ---------- clipes do Veo ---------- */
+.sub-h { margin: 22px 0 12px; font-size: 13px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.clipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.clipe {
+  display: flex; flex-direction: column; gap: 8px; padding: 14px;
+  border: 1px dashed var(--line-strong); border-radius: 14px; background: rgba(0, 0, 0, 0.3);
+  transition: border-color 240ms ease, background-color 240ms ease;
+  animation: entrar 320ms var(--ease-out) both;
+}
+.clipe.ok { border-style: solid; border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.04); }
+.clipe-st { font-size: 12px; color: var(--text-2); }
+.clipe.ok .clipe-st { color: var(--text); }
+
 /* ---------- vídeo final ---------- */
 .final { display: flex; gap: 22px; flex-wrap: wrap; }
 .final video {

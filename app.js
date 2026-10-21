@@ -402,11 +402,12 @@ async function criarVideo() {
     exigir(Array.isArray(roteiro.cenas) && roteiro.cenas.length, 'Roteiro veio sem cenas.');
     etapa(0, 'done');
     projeto = { roteiro, estilo, modo, foto, cenas: roteiro.cenas.map((c) => ({ ...c, imagemBlob: null, videoBlob: null, status: 'aguardando' })) };
+    projeto.clipes = modo === 'veo' ? agruparEmClipes(projeto.cenas.length, duracao) : [];
     mostrarRoteiro();
 
     // 2. upload da foto (o modo grátis usa a própria foto e não precisa disso)
     etapa(1, 'run');
-    if (modo === 'foto' || modo === 'manual') {
+    if (modo === 'foto' || modo === 'manual' || modo === 'veo') {
       projeto.cenas.forEach((c) => { c.imagemBlob = foto; c.status = 'foto do produto'; });
       projeto.cenas.forEach((_, i) => atualizarCena(i));
       etapa(1, 'done');
@@ -427,13 +428,19 @@ async function criarVideo() {
     const vozPromise = comRetentativa(() => gerarVoz(narracao, estilo), 2, 'Narração')
       .then((b) => { projeto.audioBlob = b; etapa(3, 'done'); log('Narração pronta.'); })
       .catch((e) => { projeto.audioBlob = null; etapa(3, 'fail'); log('Sem narração: ' + e.message); });
-    if (modo !== 'foto' && modo !== 'manual') await emLotes(projeto.cenas, modo === 'video' ? 2 : 3, (c, i) => gerarCena(i));
+    if (modo === 'imagem' || modo === 'video') await emLotes(projeto.cenas, modo === 'video' ? 2 : 3, (c, i) => gerarCena(i));
     await vozPromise;
     const ok = projeto.cenas.filter((c) => c.imagemBlob || c.videoBlob).length;
     exigir(ok > 0, 'Nenhuma cena foi gerada. Veja o log e confira a chave e o modelo da Pollinations.');
     etapa(2, ok === projeto.cenas.length ? 'done' : 'fail');
 
     // 5. montagem
+    if (modo === 'veo') {
+      etapa(4, '');
+      log(`Roteiro e narração prontos. Agora gere ${projeto.clipes.length} vídeos no Veo: em cada clipe, clique em "Copiar prompt do Veo", cole no Gemini (ou no Flow) com a foto do produto, baixe o vídeo e clique em "Enviar vídeo". Depois clique em "Montar vídeo".`);
+      $('cardRoteiro').scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
     if (modo === 'manual') {
       etapa(4, '');
       log('Roteiro e narração prontos. Em cada cena, clique em "Copiar prompt", cole no Gemini junto com a foto do produto, baixe a imagem ou o vídeo e clique em "Enviar minha cena". Depois clique em "Montar vídeo".');
@@ -482,6 +489,61 @@ async function gerarCena(i) {
   atualizarCena(i);
 }
 
+// Modo Veo: poucas gerações de 8 s, cada uma cobrindo várias cenas. O app corta cada clipe nas cenas.
+const VEO_SEGUNDOS = 8;
+function agruparEmClipes(nCenas, duracao) {
+  const nClipes = Math.max(1, Math.min(nCenas, Math.ceil(duracao / VEO_SEGUNDOS)));
+  const clipes = Array.from({ length: nClipes }, () => ({ cenas: [], blob: null }));
+  for (let i = 0; i < nCenas; i++) clipes[Math.floor((i * nClipes) / nCenas)].cenas.push(i);
+  return clipes;
+}
+
+function promptVeo(k) {
+  const clipe = projeto.clipes[k];
+  const fatia = VEO_SEGUNDOS / clipe.cenas.length;
+  const tomadas = clipe.cenas.map((i, j) => {
+    const c = projeto.cenas[i];
+    return `[${(j * fatia).toFixed(1)}s-${((j + 1) * fatia).toFixed(1)}s] ${c.prompt_movimento}. ${c.prompt_imagem}`;
+  }).join('\n');
+  return `Create an 8-second vertical 9:16 video, realistic smartphone UGC style for a TikTok Shop ad.
+Use the attached photo as the product reference: the product (${$('nomeProduto').value.trim()}) must look exactly like it.
+Only a person's hands appear, never a face. ${projeto.estilo.imagens?.iluminacao || 'Natural window light'}, ${projeto.estilo.imagens?.cenario || 'real Brazilian home'}.
+Quick cuts between these shots, in this order:
+${tomadas}
+No speech, no voice-over, no text or captions on screen, no logos.`;
+}
+
+function enviarClipe(k, arquivo) {
+  const clipe = projeto.clipes[k];
+  clipe.blob = arquivo;
+  const fatia = VEO_SEGUNDOS / clipe.cenas.length;
+  clipe.cenas.forEach((i, j) => {
+    const c = projeto.cenas[i];
+    c.videoBlob = arquivo; c.imagemBlob = null; c.videoOffset = j * fatia;
+    c.status = `clipe ${k + 1}`;
+    const el = $('cena' + i);
+    el?.querySelector('.thumb video')?.remove();
+    if (el) el.querySelector('.thumb').style.backgroundImage = '';
+    atualizarCena(i);
+  });
+  renderClipes();
+}
+
+function renderClipes() {
+  const box = $('clipes');
+  if (!projeto.clipes?.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<h3 class="sub-h">Vídeos para gerar no Veo (${projeto.clipes.length})</h3>
+    <div class="clipes">${projeto.clipes.map((cl, k) => `
+      <div class="clipe${cl.blob ? ' ok' : ''}">
+        <b>Clipe ${k + 1}</b>
+        <span class="hint">Cenas ${cl.cenas.map((i) => i + 1).join(', ')} · 8 s</span>
+        <span class="clipe-st">${cl.blob ? '✓ vídeo enviado' : 'aguardando vídeo'}</span>
+        <button data-copiarveo="${k}">Copiar prompt do Veo</button>
+        <label class="filebtn">Enviar vídeo<input type="file" accept="video/*" data-enviarclipe="${k}"></label>
+      </div>`).join('')}</div>
+    <p class="hint">No gemini.google.com: anexe a foto do produto, escolha "Vídeo" (Veo), cole o prompt e baixe o resultado. No Flow (labs.google/flow) use "Ingredientes" com a mesma foto.</p>`;
+}
+
 function mostrarRoteiro() {
   const r = projeto.roteiro;
   $('cardRoteiro').classList.remove('hidden');
@@ -496,6 +558,7 @@ function mostrarRoteiro() {
       <button data-refazer="${i}">Gerar com Pollinations</button>
     </div>`).join('');
   projeto.cenas.forEach((_, i) => atualizarCena(i));
+  renderClipes();
 }
 
 function promptGemini(i) {
@@ -512,6 +575,7 @@ function enviarCena(i, arquivo) {
   const el = $('cena' + i);
   el.querySelector('.thumb video')?.remove();
   el.querySelector('.thumb').style.backgroundImage = '';
+  c.videoOffset = 0;
   if (arquivo.type.startsWith('video')) { c.videoBlob = arquivo; c.imagemBlob = null; } else { c.imagemBlob = arquivo; c.videoBlob = null; }
   c.status = 'enviada por você';
   atualizarCena(i);
@@ -660,7 +724,7 @@ async function montar() {
   for (const c of projeto.cenas) {
     let f = null;
     try {
-      if (c.videoBlob) f = { tipo: 'video', el: await carregarVideoEl(c.videoBlob) };
+      if (c.videoBlob) f = { tipo: 'video', el: await carregarVideoEl(c.videoBlob), offset: c.videoOffset || 0 };
       else if (c.imagemBlob) f = { tipo: 'imagem', el: await carregarImagem(c.imagemBlob) };
     } catch (e) { log('Cena ignorada: ' + e.message); }
     fontes.push(f);
@@ -753,7 +817,7 @@ async function montar() {
       if (idx !== cenaTocando) {
         fontes.forEach((f, j) => { if (f?.tipo === 'video' && j !== idx) f.el.pause(); });
         const f = fontes[idx];
-        if (f?.tipo === 'video') { f.el.currentTime = 0; f.el.play().catch(() => {}); }
+        if (f?.tipo === 'video') { f.el.currentTime = Math.min(f.offset, Math.max(0, (f.el.duration || 0) - 0.5)); f.el.play().catch(() => {}); }
         cenaTocando = idx;
       }
       if (t >= total) return resolve();
@@ -962,6 +1026,14 @@ function iniciar() {
       setTimeout(() => { e.target.textContent = 'Copiar prompt (Gemini)'; }, 1500);
     }
   });
+  $('clipes').addEventListener('click', (e) => {
+    const k = e.target.dataset.copiarveo;
+    if (k == null) return;
+    navigator.clipboard.writeText(promptVeo(Number(k)));
+    e.target.textContent = 'Copiado!';
+    setTimeout(() => { e.target.textContent = 'Copiar prompt do Veo'; }, 1500);
+  });
+  $('clipes').addEventListener('change', (e) => { const k = e.target.dataset.enviarclipe; if (k != null && e.target.files[0]) enviarClipe(Number(k), e.target.files[0]); });
   $('cenas').addEventListener('change', (e) => { const i = e.target.dataset.enviar; if (i != null && e.target.files[0]) enviarCena(Number(i), e.target.files[0]); });
   $('roteiro').addEventListener('click', async (e) => {
     if (e.target.id !== 'btnMontar') return;
