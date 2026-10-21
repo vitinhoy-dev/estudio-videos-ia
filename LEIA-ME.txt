@@ -1,0 +1,50 @@
+ESTÚDIO DE VÍDEOS IA - COMO USAR
+================================
+
+1. INSTALAR
+   - Extraia a pasta do .zip em qualquer lugar do seu PC (ex.: Documentos).
+   - Não precisa instalar nada. Funciona no Windows 10/11 com Chrome ou Edge.
+
+2. ABRIR
+   - Dê dois cliques em "Abrir Estudio.bat".
+   - Uma janela preta abre e o navegador abre o app em http://localhost:8765
+   - Deixe a janela preta aberta enquanto usa. Feche-a para desligar o app.
+   - Se o Windows avisar sobre o arquivo, clique em "Mais informações" > "Executar assim mesmo".
+
+3. CONFIGURAR (só na primeira vez) - aba Configurações > Chaves e modelos
+   a) Gemini (grátis): entre em https://aistudio.google.com/apikey com sua conta Google,
+      clique em "Create API key" e cole a chave no app.
+      Clique em "Carregar modelos do Gemini" e escolha um modelo "flash".
+   b) Pollinations (opcional, só se um dia quiser pagar por cenas automáticas).
+   c) Narração: escolha "Gemini (grátis)" e uma voz feminina (ex.: Zephyr ou Leda). Clique em "Testar voz".
+   d) Clique em "Salvar configurações" e depois em "Testar conexões".
+   As chaves ficam salvas só no seu navegador, neste computador. Não compartilhe.
+
+4. ENSINAR UM ESTILO - aba Configurações > Aprender edição
+   - Envie um vídeo de referência de até 18 MB (15 a 60 segundos é o ideal).
+   - A IA estuda gancho, ritmo dos cortes, legendas, narração e imagens, e salva como estilo.
+   - Você pode ensinar vários estilos e escolher qual usar em cada vídeo.
+
+5. CRIAR UM VÍDEO - aba Criar vídeo
+   - Foto do produto, nome, nicho, contexto, duração e estilo.
+   - Modo "Cenas no Gemini Pro" (grátis, recomendado):
+       1. Clique em "Criar vídeo com 1 clique". O app escreve o roteiro e grava a narração.
+       2. Em cada cena, clique em "Copiar prompt (Gemini)".
+       3. Abra gemini.google.com, anexe a foto do produto, cole o prompt e peça a imagem
+          (ou o vídeo, se o seu plano tiver Veo). Baixe o resultado.
+       4. Volte ao app e clique em "Enviar minha cena" naquela cena.
+       5. Clique em "Montar vídeo".
+   - Modo "Só a foto do produto animada": tudo automático e grátis, mas usa só a sua foto.
+   - Modos Pollinations: automáticos, mas precisam de saldo pago.
+   - Deixe a aba visível durante a montagem.
+   - Baixe o vídeo, copie a legenda e poste. No TikTok, ative o rótulo de conteúdo gerado por IA.
+
+CUSTOS
+   - Gemini API (roteiro, estudo de edição e voz): grátis dentro do limite diário do Google.
+   - Cenas no app do Gemini: usam o seu plano Gemini Pro, sem custo extra.
+   - Pollinations: só com saldo pago. Não é necessária.
+
+SE DER ERRO
+   - O log na tela mostra a mensagem. Os erros mais comuns:
+     HTTP 401/403 = chave errada; HTTP 402 = sem créditos; HTTP 404/400 = nome de modelo errado
+     (clique em "Carregar modelos" e escolha outro); HTTP 429 = muitas chamadas, espere um pouco.

@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estúdio de Vídeos IA</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"></span><span>Estúdio de Vídeos IA</span></div>
+  <nav class="tabs" id="mainTabs">
+    <span class="indicator"></span>
+    <button data-tab="criar" class="active">Criar vídeo</button>
+    <button data-tab="config">Configurações</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ CRIAR VÍDEO ============ -->
+  <section id="tab-criar" class="tab active">
+    <div class="grid">
+      <div class="card">
+        <h2><span class="num">1</span>Produto e contexto</h2>
+        <label>Foto do produto
+          <input type="file" id="fotoProduto" accept="image/*">
+        </label>
+        <img id="previewFoto" class="preview hidden" alt="Prévia do produto">
+        <label>Nome do produto
+          <input type="text" id="nomeProduto" placeholder="Ex.: Pote organizador de sal com tampa">
+        </label>
+        <div class="row">
+          <label>Nicho
+            <select id="nicho">
+              <option>Casa e organização</option>
+              <option>Cozinha</option>
+              <option>Pets</option>
+              <option>Tech e celular</option>
+              <option>Carro</option>
+              <option>Beleza</option>
+              <option>Outro</option>
+            </select>
+          </label>
+          <label>Preço (opcional)
+            <input type="text" id="preco" placeholder="R$ 39,90">
+          </label>
+        </div>
+        <label>Contexto do vídeo
+          <textarea id="contexto" rows="4" placeholder="Ex.: Mostrar uma pessoa (só as mãos) na cozinha colocando sal no pote, organizando o armário, convencendo a comprar."></textarea>
+        </label>
+        <div class="row">
+          <label>Duração
+            <select id="duracao">
+              <option value="15">15 s</option>
+              <option value="20" selected>20 s</option>
+              <option value="30">30 s</option>
+            </select>
+          </label>
+          <label>Estilo de edição
+            <select id="estiloSelect"></select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Cenas
+            <select id="modoCena">
+              <option value="manual" selected>Cenas no Gemini Pro (grátis, você cola o prompt)</option>
+              <option value="foto">Só a foto do produto animada (grátis, automático)</option>
+              <option value="imagem">Cenas IA automáticas na Pollinations (pago)</option>
+              <option value="video">Vídeo IA automático na Pollinations (pago)</option>
+            </select>
+          </label>
+          <label>Música de fundo (opcional)
+            <input type="file" id="musica" accept="audio/*">
+          </label>
+        </div>
+        <button id="btnCriar" class="primary big">Criar vídeo com 1 clique</button>
+        <p class="hint">Mantenha esta aba aberta e visível durante a montagem.</p>
+      </div>
+
+      <div class="card">
+        <h2><span class="num">2</span>Progresso</h2>
+        <ol id="etapas" class="etapas"></ol>
+        <pre id="log" class="log"></pre>
+      </div>
+    </div>
+
+    <div class="card hidden" id="cardRoteiro">
+      <h2><span class="num">3</span>Roteiro</h2>
+      <div id="roteiro"></div>
+      <div class="cenas" id="cenas"></div>
+    </div>
+
+    <div class="card hidden" id="cardFinal">
+      <h2><span class="num">4</span>Vídeo pronto</h2>
+      <div class="final">
+        <video id="videoFinal" controls playsinline></video>
+        <div class="final-side">
+          <a id="btnBaixar" class="primary big" download>Baixar vídeo</a>
+          <button id="btnRemontar">Remontar (mesmas cenas)</button>
+          <label>Legenda para o post
+            <textarea id="legendaPost" rows="6" readonly></textarea>
+          </label>
+          <button id="btnCopiar">Copiar legenda</button>
+          <p class="hint">No TikTok, marque o produto no carrinho e ative o rótulo "Conteúdo gerado por IA".</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONFIGURAÇÕES ============ -->
+  <section id="tab-config" class="tab">
+    <nav class="subtabs" id="subTabs">
+      <span class="indicator"></span>
+      <button data-sub="chaves" class="active">Chaves e modelos</button>
+      <button data-sub="aprender">Aprender edição</button>
+    </nav>
+
+    <div id="sub-chaves" class="sub active">
+      <div class="grid">
+        <div class="card">
+          <h2>Gemini (roteiro e estudo de edição, grátis)</h2>
+          <p class="hint">Crie a chave grátis em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.</p>
+          <label>Chave do Gemini
+            <input type="password" id="geminiKey" placeholder="AIza...">
+          </label>
+          <label>Modelo do Gemini
+            <input type="text" id="geminiModel" list="geminiModelsList">
+            <datalist id="geminiModelsList"></datalist>
+          </label>
+          <button id="btnModelosGemini">Carregar modelos do Gemini</button>
+          <h2 style="margin-top:18px">Narração</h2>
+          <label>Voz feita por
+            <select id="ttsProvider">
+              <option value="gemini">Gemini (grátis, vozes femininas)</option>
+              <option value="pollinations">Pollinations (usa créditos)</option>
+            </select>
+          </label>
+          <div class="row">
+            <label>Modelo de voz do Gemini
+              <input type="text" id="geminiTtsModel" list="geminiTtsList">
+              <datalist id="geminiTtsList">
+                <option value="gemini-3.1-flash-tts-preview"></option>
+                <option value="gemini-2.5-flash-preview-tts"></option>
+              </datalist>
+            </label>
+            <label>Voz feminina do Gemini
+              <select id="geminiVoice">
+                <option value="Zephyr">Zephyr (animada, brilhante)</option>
+                <option value="Leda">Leda (jovem)</option>
+                <option value="Aoede">Aoede (leve)</option>
+                <option value="Kore">Kore (firme)</option>
+                <option value="Autonoe">Autonoe (clara)</option>
+                <option value="Despina">Despina (suave)</option>
+                <option value="Laomedeia">Laomedeia (alegre)</option>
+                <option value="Callirrhoe">Callirrhoe (tranquila)</option>
+                <option value="Erinome">Erinome (clara)</option>
+                <option value="Vindemiatrix">Vindemiatrix (gentil)</option>
+                <option value="Sulafat">Sulafat (calorosa)</option>
+              </select>
+            </label>
+          </div>
+          <button id="btnTestarVozGemini">Testar voz</button>
+        </div>
+
+        <div class="card">
+          <h2>Pollinations (cenas, voz e upload)</h2>
+          <p class="hint">Crie a conta em <a href="https://enter.pollinations.ai" target="_blank" rel="noopener">enter.pollinations.ai</a> e copie a chave secreta (sk_...). Ela fica salva só neste computador.</p>
+          <label>Chave da Pollinations
+            <input type="password" id="pollKey" placeholder="sk_...">
+          </label>
+          <label>Modelo de imagem
+            <input type="text" id="imageModel" list="imageModelsList">
+            <datalist id="imageModelsList"></datalist>
+          </label>
+          <label>Modelo de vídeo
+            <input type="text" id="videoModel" list="videoModelsList">
+            <datalist id="videoModelsList"></datalist>
+          </label>
+          <div class="row">
+            <label>Segundos por clipe de vídeo
+              <input type="number" id="clipSeconds" min="2" max="10">
+            </label>
+          </div>
+          <div class="row">
+            <label>Modelo de voz
+              <input type="text" id="ttsModel" list="ttsModelsList">
+              <datalist id="ttsModelsList">
+                <option value="openai/tts-1"></option>
+                <option value="openai/tts-1-hd"></option>
+                <option value="elevenlabs/eleven-v3"></option>
+              </datalist>
+            </label>
+            <label>Voz
+              <input type="text" id="voice" list="voicesList">
+              <datalist id="voicesList">
+                <option value="nova"></option><option value="shimmer"></option><option value="coral"></option>
+                <option value="alloy"></option><option value="echo"></option><option value="onyx"></option>
+                <option value="rachel"></option><option value="adam"></option><option value="antoni"></option>
+              </datalist>
+            </label>
+          </div>
+          <label>Texto do roteiro feito por
+            <select id="textProvider">
+              <option value="gemini">Gemini (grátis)</option>
+              <option value="pollinations">Pollinations</option>
+            </select>
+          </label>
+          <div class="row">
+            <button id="btnModelosPoll">Carregar modelos da Pollinations</button>
+            <button id="btnTestarVoz">Testar voz</button>
+          </div>
+          <audio id="audioTeste" controls class="hidden"></audio>
+        </div>
+      </div>
+      <div class="card">
+        <button id="btnSalvar" class="primary">Salvar configurações</button>
+        <button id="btnTestar">Testar conexões</button>
+        <span id="statusSalvar" class="hint"></span>
+        <pre id="logTeste" class="log small"></pre>
+      </div>
+    </div>
+
+    <div id="sub-aprender" class="sub">
+      <div class="grid">
+        <div class="card">
+          <h2>Ensinar um estilo de edição</h2>
+          <p class="hint">Envie um vídeo de referência (até cerca de 18 MB, de preferência 15 a 60 segundos). A IA estuda o gancho, o ritmo dos cortes, as legendas, a narração e as imagens, e salva tudo como um estilo que você escolhe ao criar vídeos.</p>
+          <label>Vídeo de referência
+            <input type="file" id="videoRef" accept="video/*">
+          </label>
+          <video id="previewRef" class="preview hidden" controls muted playsinline></video>
+          <label>Nome do estilo
+            <input type="text" id="nomeEstilo" placeholder="Ex.: Organização rápida com legenda amarela">
+          </label>
+          <label>Observações (opcional)
+            <textarea id="obsEstilo" rows="3" placeholder="Ex.: Gostei principalmente do gancho e das legendas."></textarea>
+          </label>
+          <button id="btnAprender" class="primary">Estudar este vídeo</button>
+          <pre id="logAprender" class="log small"></pre>
+        </div>
+        <div class="card">
+          <h2>Estilos aprendidos</h2>
+          <div id="listaEstilos"></div>
+          <div class="row">
+            <button id="btnExportar">Exportar estilos</button>
+            <label class="filebtn">Importar estilos
+              <input type="file" id="importEstilos" accept="application/json">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<canvas id="canvas" width="1080" height="1920" class="hidden"></canvas>
+<script src="app.js"></script>
+</body>
+</html>
